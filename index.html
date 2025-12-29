@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Music Search & Trending</title>
+  <title>Music Search: SoundCloud + Deezer</title>
   <style>
     body { font-family: Arial, sans-serif; background:#0f1220; color:#e8ecf2; margin:0 }
     header { padding:20px; background:#161a2e; position:sticky; top:0 }
@@ -25,19 +25,19 @@
 </head>
 <body>
   <header>
-    <h1>Music Search & Trending</h1>
+    <h1>Music Search: SoundCloud + Deezer</h1>
     <div class="search">
-      <input id="query" type="text" placeholder="Search SoundCloud..." />
+      <input id="query" type="text" placeholder="Search songs, artists, genres..." />
       <button id="searchBtn" class="primary">Search</button>
       <button id="clearBtn" class="secondary">Clear</button>
     </div>
-    <div class="note">Powered by SoundCloud & Audiomack public APIs</div>
+    <div class="note">Powered by SoundCloud & Deezer public APIs</div>
   </header>
 
   <main>
-    <div id="status" class="note">Enter a search term or view trending music.</div>
+    <div id="status" class="note">Enter a search term and hit Search.</div>
     <div id="soundcloud" class="section"></div>
-    <div id="audiomack" class="section"></div>
+    <div id="deezer" class="section"></div>
   </main>
 
   <script>
@@ -46,7 +46,7 @@
     const clearBtn = document.getElementById("clearBtn");
     const statusEl = document.getElementById("status");
     const scEl = document.getElementById("soundcloud");
-    const audiomackEl = document.getElementById("audiomack");
+    const deezerEl = document.getElementById("deezer");
 
     async function searchSoundCloud(q) {
       try {
@@ -63,7 +63,7 @@
             <audio controls src="${track.stream_url}?client_id=2t9loNQH90kzJcsFCODdigxfp325aq4z"></audio>
             <div class="actions">
               ${track.downloadable ? `<a href="${track.download_url}?client_id=2t9loNQH90kzJcsFCODdigxfp325aq4z" download>Download</a>` : ""}
-              <a href="${track.permalink_url}" target="_blank">View</a>
+              <a href="${track.permalink_url}" target="_blank">View on SoundCloud</a>
             </div>
           </div>`).join("");
       } catch {
@@ -71,26 +71,25 @@
       }
     }
 
-    async function loadAudiomackTrending() {
+    async function searchDeezer(q) {
       try {
-        const res = await fetch("https://publicapi.dev/api/trending/songs");
+        const res = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
-        if (!data || !data.songs) {
-          audiomackEl.innerHTML = `<div class="note">No Audiomack trending data available.</div>`;
+        if (!data || !data.data || data.data.length === 0) {
+          deezerEl.innerHTML = `<div class="note">No Deezer results found for "${q}".</div>`;
           return;
         }
-        audiomackEl.innerHTML = "<h2>Audiomack Trending</h2>" + data.songs.map(song => `
+        deezerEl.innerHTML = "<h2>Deezer Results</h2>" + data.data.map(track => `
           <div class="card">
-            <strong>${song.title}</strong><br>
-            <span class="meta">${song.artist}</span>
-            <img src="${song.cover}" alt="cover">
-            <audio controls src="${song.stream_url}"></audio>
+            <strong>${track.title}</strong><br>
+            <span class="meta">${track.artist.name} · ${track.album.title}</span>
+            <audio controls src="${track.preview}"></audio>
             <div class="actions">
-              <a href="${song.url}" target="_blank">View on Audiomack</a>
+              <a href="${track.link}" target="_blank">View on Deezer</a>
             </div>
           </div>`).join("");
       } catch {
-        audiomackEl.innerHTML = `<div class="note">Error loading Audiomack results.</div>`;
+        deezerEl.innerHTML = `<div class="note">Error loading Deezer results.</div>`;
       }
     }
 
@@ -100,9 +99,10 @@
         statusEl.textContent = "Type a search term.";
         return;
       }
-      statusEl.textContent = "Searching SoundCloud…";
+      statusEl.textContent = "Searching…";
       scEl.innerHTML = "";
-      await searchSoundCloud(q);
+      deezerEl.innerHTML = "";
+      await Promise.allSettled([searchSoundCloud(q), searchDeezer(q)]);
       statusEl.textContent = "Done.";
     }
 
@@ -110,11 +110,9 @@
     clearBtn.onclick = () => {
       queryEl.value = "";
       scEl.innerHTML = "";
+      deezerEl.innerHTML = "";
       statusEl.textContent = "Cleared.";
     };
-
-    // Load Audiomack trending on page load
-    loadAudiomackTrending();
   </script>
 </body>
 </html>
