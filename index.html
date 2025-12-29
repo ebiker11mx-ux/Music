@@ -4,330 +4,135 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Legal Music Search & Downloads</title>
-  <meta name="description" content="Search legal music sources and download tracks where permitted." />
   <style>
-    :root {
-      --bg: #0f1220;
-      --card: #161a2e;
-      --muted: #a6adbb;
-      --text: #e8ecf2;
-      --accent: #7c9fff;
-      --accent2: #5de1a9;
-      --danger: #ff7676;
-      --border: #232743;
-    }
-    * { box-sizing: border-box }
-    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif }
-    a { color: var(--accent); text-decoration: none }
-    a:hover { text-decoration: underline }
-    header {
-      padding: 28px 20px;
-      border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; background: linear-gradient(180deg, rgba(15,18,32,0.95), rgba(15,18,32,0.85));
-      backdrop-filter: blur(6px); z-index: 10;
-    }
-    .wrap { max-width: 1100px; margin: 0 auto }
-    h1 { margin:0 0 8px; font-size: 24px }
-    .sub { color: var(--muted); font-size: 14px }
-    .search {
-      display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-top: 16px
-    }
-    input[type="text"] {
-      padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text);
-      outline: none
-    }
-    button {
-      padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--accent); color:#0b1020; font-weight: 700; cursor: pointer
-    }
-    button.secondary { background: var(--card); color: var(--text) }
-    main { padding: 22px 20px }
-    .sources { display:flex; flex-wrap: wrap; gap: 8px; margin-top: 6px }
-    .tag {
-      display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius: 999px; background: #121631; color: var(--muted); font-size: 13px
-    }
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px }
-    .col-8 { grid-column: span 8 }
-    .col-4 { grid-column: span 4 }
-    @media (max-width: 960px) { .grid { grid-template-columns: 1fr } .col-8, .col-4 { grid-column: 1 } }
-    .panel {
-      border:1px solid var(--border); border-radius: 14px; background: var(--card)
-    }
-    .panel h2 { font-size: 18px; margin: 0; padding: 14px 16px; border-bottom: 1px solid var(--border) }
-    .panel .body { padding: 14px 16px }
-    .card {
-      border:1px solid var(--border); border-radius: 12px; padding: 12px; background: #121631; display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center
-    }
-    .card + .card { margin-top: 10px }
-    .thumb {
-      width:64px; height:64px; border-radius: 8px; background: #0b0f24; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size: 12px; color: var(--muted)
-    }
-    .title { font-weight: 700 }
-    .meta { color: var(--muted); font-size: 12px; margin-top: 2px }
-    .actions { display:flex; gap: 8px }
-    .btn {
-      padding: 8px 10px; border-radius: 10px; border:1px solid var(--border); background: #0f142b; color: var(--text); font-size: 13px; cursor: pointer
-    }
-    .btn.primary { background: var(--accent2); color: #072217; font-weight: 700 }
-    .badge { display:inline-block; font-size: 11px; color: var(--muted); border:1px dashed var(--border); padding: 4px 8px; border-radius: 999px; margin-left: 6px }
-    .muted { color: var(--muted) }
-    .note { background: #10152b; border:1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 13px }
-    .danger { color: var(--danger) }
-    footer { padding: 22px 20px; color: var(--muted) }
-    .links a { display:inline-block; margin-right: 8px; margin-bottom: 6px; padding: 8px 10px; border:1px solid var(--border); border-radius: 10px; background: #121631 }
-    .loading { font-size: 13px; color: var(--muted) }
-    .empty { font-size: 13px; color: var(--muted) }
+    body { font-family: Arial, sans-serif; background:#0f1220; color:#e8ecf2; margin:0 }
+    header { padding:20px; background:#161a2e; position:sticky; top:0 }
+    h1 { margin:0; font-size:22px }
+    .search { display:flex; gap:8px; margin-top:10px }
+    input { flex:1; padding:10px; border-radius:6px; border:1px solid #232743; background:#121631; color:#e8ecf2 }
+    button { padding:10px 14px; border:none; border-radius:6px; cursor:pointer; font-weight:bold }
+    button.primary { background:#7c9fff; color:#0f1220 }
+    button.secondary { background:#232743; color:#e8ecf2 }
+    main { padding:20px }
+    .section { margin-bottom:30px }
+    .card { background:#121631; border:1px solid #232743; border-radius:8px; padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center }
+    .meta { font-size:12px; color:#a6adbb }
+    .actions a { margin-left:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold }
+    audio { margin-top:6px; width:100% }
+    .note { font-size:13px; color:#a6adbb; margin-top:10px }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap">
-      <h1>Legal music search & downloads</h1>
-      <div class="sub">Search Creative Commons and public domain music. Download where the license permits.</div>
-
-      <div class="search">
-        <input id="query" type="text" placeholder="Search songs, artists, genres (e.g., lo-fi, blues, piano)..." />
-        <button id="searchBtn">Search</button>
-        <button class="secondary" id="clearBtn">Clear</button>
-      </div>
-
-      <div class="sources">
-        <span class="tag">Jamendo (indie CC)</span>
-        <span class="tag">Internet Archive (public/CC)</span>
-        <span class="tag">Quick links: SoundCloud · Bandcamp · Audiomack</span>
-      </div>
+    <h1>Legal Music Search & Downloads</h1>
+    <div class="search">
+      <input id="query" type="text" placeholder="Search songs, artists, genres..." />
+      <button id="searchBtn" class="primary">Search</button>
+      <button id="clearBtn" class="secondary">Clear</button>
     </div>
+    <div class="note">Sources: Jamendo · Internet Archive · Free Music Archive</div>
   </header>
 
-  <main class="wrap">
-    <div class="grid">
-      <section class="panel col-8" id="results">
-        <h2>Results</h2>
-        <div class="body">
-          <div id="status" class="loading">Enter a search term and hit Search.</div>
-          <div id="jamendo"></div>
-          <div id="archive"></div>
-        </div>
-      </section>
-
-      <aside class="panel col-4">
-        <h2>Tips and quick links</h2>
-        <div class="body">
-          <div class="note">
-            <strong>Disclaimer:</strong> This site surfaces sources that allow legal downloads. Respect artist licenses and terms. Mainstream hits usually require a streaming subscription for offline use.
-          </div>
-          <p class="muted">If you don’t find what you need here, try these official platforms (downloads depend on artist permissions):</p>
-          <div class="links">
-            <a id="scLink" target="_blank" rel="noopener">Search SoundCloud</a>
-            <a id="bcLink" target="_blank" rel="noopener">Search Bandcamp</a>
-            <a id="amLink" target="_blank" rel="noopener">Search Audiomack</a>
-          </div>
-          <p class="muted">Pro tip: Filter by Creative Commons or “free download” on these platforms for legal downloads.</p>
-        </div>
-      </aside>
-    </div>
+  <main>
+    <div id="status" class="note">Enter a search term and hit Search.</div>
+    <div id="jamendo" class="section"></div>
+    <div id="archive" class="section"></div>
+    <div id="fma" class="section"></div>
   </main>
 
-  <footer class="wrap">
-    <div class="muted">Built for legal discovery and downloads only. © 2025</div>
-  </footer>
-
   <script>
-    // ===== CONFIG =====
-    const JAMENDO_CLIENT_ID = "REPLACE_WITH_YOUR_JAMENDO_CLIENT_ID"; // get one free at https://developer.jamendo.com/v3.0
-    const JAMENDO_BASE = "https://api.jamendo.com/v3.0";
-    // ==================
+    const JAMENDO_CLIENT_ID = "REPLACE_WITH_YOUR_JAMENDO_CLIENT_ID"; 
+    const FMA_API_KEY = "REPLACE_WITH_YOUR_FMA_API_KEY"; 
 
     const queryEl = document.getElementById("query");
     const searchBtn = document.getElementById("searchBtn");
     const clearBtn = document.getElementById("clearBtn");
-
     const statusEl = document.getElementById("status");
     const jamendoEl = document.getElementById("jamendo");
     const archiveEl = document.getElementById("archive");
+    const fmaEl = document.getElementById("fma");
 
-    const scLink = document.getElementById("scLink");
-    const bcLink = document.getElementById("bcLink");
-    const amLink = document.getElementById("amLink");
-
-    function setQuickLinks(q) {
-      const encoded = encodeURIComponent(q);
-      scLink.href = `https://soundcloud.com/search/sounds?q=${encoded}`;
-      bcLink.href = `https://bandcamp.com/search?q=${encoded}`;
-      amLink.href = `https://audiomack.com/search?q=${encoded}`;
-      scLink.textContent = `Search SoundCloud: "${q}"`;
-      bcLink.textContent = `Search Bandcamp: "${q}"`;
-      amLink.textContent = `Search Audiomack: "${q}"`;
-    }
-
-    function humanLicense(lic) {
-      if (!lic) return "License: Unknown";
-      const map = {
-        "by": "CC BY",
-        "by-nc": "CC BY-NC",
-        "by-nd": "CC BY-ND",
-        "by-sa": "CC BY-SA",
-        "by-nc-sa": "CC BY-NC-SA",
-        "by-nc-nd": "CC BY-NC-ND",
-        "cc-0": "CC0 / Public Domain"
-      };
-      return `License: ${map[lic] || lic.toUpperCase()}`;
-    }
-
-    function fileIcon(name) {
-      const ext = (name.split(".").pop() || "").toLowerCase();
-      if (ext === "mp3") return "MP3";
-      if (ext === "ogg" || ext === "oga") return "OGG";
-      if (ext === "flac") return "FLAC";
-      return ext.toUpperCase();
-    }
-
+    // Jamendo search
     async function searchJamendo(q) {
-      if (!JAMENDO_CLIENT_ID || JAMENDO_CLIENT_ID.includes("REPLACE")) {
-        jamendoEl.innerHTML = `
-          <div class="note">
-            <strong>Jamendo setup required:</strong> Add your client ID in the code to enable Jamendo results.
-            Get one free at developer.jamendo.com and replace JAMENDO_CLIENT_ID.
-          </div>`;
-        return;
-      }
-
-      statusEl.textContent = "Searching Jamendo…";
-      try {
-        const url = new URL(JAMENDO_BASE + "/tracks/");
-        url.search = new URLSearchParams({
-          client_id: JAMENDO_CLIENT_ID,
-          format: "json",
-          limit: "24",
-          search: q,
-          audioformat: "mp31",
-          include: "musicinfo+licenses",
-          imagesize: "200",
-          order: "popularity_total",
-        }).toString();
-        const res = await fetch(url.toString());
-        const data = await res.json();
-
-        if (!data.results || data.results.length === 0) {
-          jamendoEl.innerHTML = `<div class="empty">No Jamendo results for "${q}".</div>`;
-          return;
-        }
-
-        const list = data.results.map(track => {
-          const img = track.image || "";
-          const audio = track.audio || "";
-          const share = track.shareurl || "";
-          const artist = track.artist_name || "Unknown";
-          const title = track.name || "Untitled";
-          const lic = track.license || track.licenses?.shortname || "";
-          return `
-          <div class="card">
-            <div class="thumb">${img ? `<img src="${img}" alt="" style="width:64px;height:64px;border-radius:8px;" />` : "IMG"}</div>
-            <div>
-              <div class="title">${title}</div>
-              <div class="meta">${artist} · <span class="badge">${humanLicense(lic)}</span></div>
-              <audio controls src="${audio}" style="width:100%;margin-top:8px"></audio>
-            </div>
-            <div class="actions">
-              ${audio ? `<a class="btn primary" href="${audio}" download>Download MP3</a>` : ""}
-              ${share ? `<a class="btn" href="${share}" target="_blank" rel="noopener">Track page</a>` : ""}
-            </div>
-          </div>`;
-        }).join("");
-
-        jamendoEl.innerHTML = `<h3 style="margin:6px 0 10px">Jamendo</h3>${list}`;
-      } catch (e) {
-        console.error(e);
-        jamendoEl.innerHTML = `<div class="note"><strong>Error:</strong> Could not load Jamendo results right now.</div>`;
-      }
-    }
-
-    async function searchArchive(q) {
-      statusEl.textContent = "Searching Internet Archive…";
-      try {
-        const searchUrl = `https://archive.org/advancedsearch.php?` + new URLSearchParams({
-          q: `mediatype:audio AND (${q})`,
-          fl: ["identifier","title","creator","publicdate","licenseurl"],
-          rows: "24",
-          page: "1",
-          output: "json"
-        }).toString();
-
-        const res = await fetch(searchUrl);
-        const data = await res.json();
-        const items = data?.response?.docs || [];
-
-        if (items.length === 0) {
-          archiveEl.innerHTML = `<div class="empty">No Internet Archive results for "${q}".</div>`;
-          return;
-        }
-
-        const rows = await Promise.all(items.map(async (doc) => {
-          const id = doc.identifier;
-          const metaRes = await fetch(`https://archive.org/metadata/${id}`);
-          const meta = await metaRes.json();
-          const files = (meta?.files || []).filter(f =>
-            /mp3|ogg|flac/i.test(f.name) || /MP3|Ogg Vorbis|Flac/i.test(f.format || "")
-          );
-
-          const fileLinks = files.slice(0, 3).map(f => {
-            const href = `https://archive.org/download/${id}/${encodeURIComponent(f.name)}`;
-            return `<a class="btn" href="${href}" download>${fileIcon(f.name)}</a>`;
-          }).join("");
-
-          const title = doc.title || id;
-          const creator = doc.creator || "Unknown";
-          const pageLink = `https://archive.org/details/${id}`;
-          const licText = doc.licenseurl ? `License: ${doc.licenseurl}` : "License: See item page";
-
-          return `
+      if (!JAMENDO_CLIENT_ID.includes("REPLACE")) {
+        try {
+          const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=10&search=${encodeURIComponent(q)}&audioformat=mp31&include=licenses+musicinfo`;
+          const res = await fetch(url);
+          const data = await res.json();
+          jamendoEl.innerHTML = "<h2>Jamendo</h2>" + data.results.map(track => `
             <div class="card">
-              <div class="thumb">IA</div>
               <div>
-                <div class="title">${title}</div>
-                <div class="meta">${creator} · <span class="badge">${licText}</span></div>
+                <strong>${track.name}</strong><br>
+                <span class="meta">${track.artist_name} · License: ${track.license}</span>
+                <audio controls src="${track.audio}"></audio>
               </div>
               <div class="actions">
-                ${fileLinks || `<a class="btn" href="${pageLink}" target="_blank" rel="noopener">Item page</a>`}
+                <a href="${track.audio}" download>Download</a>
               </div>
-            </div>`;
-        }));
+            </div>`).join("");
+        } catch { jamendoEl.innerHTML = "<div class='note'>Error loading Jamendo.</div>"; }
+      } else {
+        jamendoEl.innerHTML = "<div class='note'>Jamendo setup required: add your Client ID.</div>";
+      }
+    }
 
-        archiveEl.innerHTML = `<h3 style="margin:12px 0 10px">Internet Archive</h3>${rows.join("")}`;
-      } catch (e) {
-        console.error(e);
-        archiveEl.innerHTML = `<div class="note"><strong>Error:</strong> Could not load Internet Archive results right now.</div>`;
+    // Internet Archive search
+    async function searchArchive(q) {
+      try {
+        const url = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(${encodeURIComponent(q)})&fl[]=identifier&fl[]=title&fl[]=creator&rows=10&page=1&output=json`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const items = data.response.docs;
+        archiveEl.innerHTML = "<h2>Internet Archive</h2>" + items.map(doc => `
+          <div class="card">
+            <div>
+              <strong>${doc.title}</strong><br>
+              <span class="meta">${doc.creator || "Unknown"} · License: See item page</span>
+            </div>
+            <div class="actions">
+              <a href="https://archive.org/details/${doc.identifier}" target="_blank">View</a>
+            </div>
+          </div>`).join("");
+      } catch { archiveEl.innerHTML = "<div class='note'>Error loading Internet Archive.</div>"; }
+    }
+
+    // Free Music Archive search
+    async function searchFMA(q) {
+      if (!FMA_API_KEY.includes("REPLACE")) {
+        try {
+          const url = `https://freemusicarchive.org/api/trackSearch?api_key=${FMA_API_KEY}&query=${encodeURIComponent(q)}&limit=10`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const tracks = data.dataset || [];
+          fmaEl.innerHTML = "<h2>Free Music Archive</h2>" + tracks.map(track => `
+            <div class="card">
+              <div>
+                <strong>${track.track_title}</strong><br>
+                <span class="meta">${track.artist_name} · License: ${track.license_title}</span>
+                ${track.track_file_url ? `<audio controls src="${track.track_file_url}"></audio>` : ""}
+              </div>
+              <div class="actions">
+                ${track.track_file_url ? `<a href="${track.track_file_url}" download>Download</a>` : ""}
+                <a href="${track.track_url}" target="_blank">View</a>
+              </div>
+            </div>`).join("");
+        } catch { fmaEl.innerHTML = "<div class='note'>Error loading FMA.</div>"; }
+      } else {
+        fmaEl.innerHTML = "<div class='note'>FMA setup required: add your API key.</div>";
       }
     }
 
     async function doSearch() {
-      const q = (queryEl.value || "").trim();
-      if (!q) {
-        statusEl.textContent = "Type a search term to begin.";
-        return;
-      }
+      const q = queryEl.value.trim();
+      if (!q) { statusEl.textContent = "Type a search term."; return; }
       statusEl.textContent = "Searching…";
-      setQuickLinks(q);
-      jamendoEl.innerHTML = "";
-      archiveEl.innerHTML = "";
-      await Promise.allSettled([searchJamendo(q), searchArchive(q)]);
+      jamendoEl.innerHTML = archiveEl.innerHTML = fmaEl.innerHTML = "";
+      await Promise.allSettled([searchJamendo(q), searchArchive(q), searchFMA(q)]);
       statusEl.textContent = "Done.";
     }
 
-    searchBtn.addEventListener("click", doSearch);
-    clearBtn.addEventListener("click", () => {
-      queryEl.value = "";
-      statusEl.textContent = "Cleared. Enter a search term and hit Search.";
-      jamendoEl.innerHTML = "";
-      archiveEl.innerHTML = "";
-      setQuickLinks("");
-    });
-    queryEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doSearch();
-    });
-
-    // Prefill with a friendly starter query
-    queryEl.value = "lo-fi chill";
-    setQuickLinks(queryEl.value);
+    searchBtn.onclick = doSearch;
+    clearBtn.onclick = () => { queryEl.value=""; jamendoEl.innerHTML=archiveEl.innerHTML=fmaEl.innerHTML=""; statusEl.textContent="Cleared."; };
   </script>
 </body>
 </html>
