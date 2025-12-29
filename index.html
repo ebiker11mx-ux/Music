@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Music Search: SoundCloud + Deezer</title>
+  <title>Music Search: Jamendo + FMA</title>
   <style>
     body { font-family: Arial, sans-serif; background:#0f1220; color:#e8ecf2; margin:0 }
     header { padding:20px; background:#161a2e; position:sticky; top:0 }
@@ -17,140 +17,80 @@
     .section { margin-bottom:30px }
     .card { background:#121631; border:1px solid #232743; border-radius:8px; padding:12px; margin-bottom:10px; }
     .meta { font-size:12px; color:#a6adbb }
-    .actions a, .actions button { margin-right:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold; cursor:pointer }
+    .actions a { margin-right:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold }
     audio { margin-top:6px; width:100% }
     img { width:100%; margin-top:8px; border-radius:6px }
     .note { font-size:13px; color:#a6adbb; margin-top:10px }
-    #favorites { background:#161a2e; padding:15px; border-radius:8px; display:none }
   </style>
 </head>
 <body>
   <header>
-    <h1>Music Search: SoundCloud + Deezer</h1>
+    <h1>Music Search: Jamendo + FMA</h1>
     <div class="search">
       <input id="query" type="text" placeholder="Search songs, artists, genres..." />
       <button id="searchBtn" class="primary">Search</button>
       <button id="clearBtn" class="secondary">Clear</button>
-      <button id="toggleFavBtn" class="secondary">Show Favorites</button>
     </div>
-    <div class="note">Powered by SoundCloud & Deezer public APIs</div>
+    <div class="note">Powered by Jamendo & Free Music Archive APIs</div>
   </header>
 
   <main>
     <div id="status" class="note">Enter a search term and hit Search.</div>
-    <div id="soundcloud" class="section"></div>
-    <div id="deezer" class="section"></div>
-    <div id="favorites" class="section">
-      <h2>Favorites</h2>
-      <div id="favList"></div>
-    </div>
+    <div id="jamendo" class="section"></div>
+    <div id="fma" class="section"></div>
   </main>
 
   <script>
     const queryEl = document.getElementById("query");
     const searchBtn = document.getElementById("searchBtn");
     const clearBtn = document.getElementById("clearBtn");
-    const toggleFavBtn = document.getElementById("toggleFavBtn");
     const statusEl = document.getElementById("status");
-    const scEl = document.getElementById("soundcloud");
-    const deezerEl = document.getElementById("deezer");
-    const favEl = document.getElementById("favorites");
-    const favListEl = document.getElementById("favList");
+    const jamendoEl = document.getElementById("jamendo");
+    const fmaEl = document.getElementById("fma");
 
-    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-
-    function saveFavorites() {
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-      renderFavorites();
-    }
-
-    function addFavorite(track) {
-      if (!favorites.find(f => f.id === track.id && f.source === track.source)) {
-        favorites.push(track);
-        saveFavorites();
-      }
-    }
-
-    function removeFavorite(id, source) {
-      favorites = favorites.filter(f => !(f.id === id && f.source === source));
-      saveFavorites();
-    }
-
-    function renderFavorites() {
-      if (favorites.length === 0) {
-        favListEl.innerHTML = "<div class='note'>No favorites yet.</div>";
-        return;
-      }
-      favListEl.innerHTML = favorites.map(track => `
-        <div class="card">
-          <strong>${track.title}</strong><br>
-          <span class="meta">${track.artist} (${track.source})</span>
-          ${track.preview ? `<audio controls src="${track.preview}"></audio>` : ""}
-          <div class="actions">
-            <a href="${track.link}" target="_blank">View</a>
-            <button onclick="removeFavorite('${track.id}','${track.source}')">Remove</button>
-          </div>
-        </div>`).join("");
-    }
-
-    async function searchSoundCloud(q) {
+    async function searchJamendo(q) {
       try {
-        const res = await fetch(`/api/soundcloud?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/jamendo?q=${encodeURIComponent(q)}`);
         const data = await res.json();
-        if (!data || data.length === 0) {
-          scEl.innerHTML = `<div class="note">No SoundCloud results found for "${q}".</div>`;
+        if (!data || !data.results || data.results.length === 0) {
+          jamendoEl.innerHTML = `<div class="note">No Jamendo results found for "${q}".</div>`;
           return;
         }
-        scEl.innerHTML = "<h2>SoundCloud Results</h2>" + data.map(track => `
+        jamendoEl.innerHTML = "<h2>Jamendo Results</h2>" + data.results.map(track => `
           <div class="card">
-            <strong>${track.title}</strong><br>
-            <span class="meta">${track.user.username} · ${track.downloadable ? "Downloadable" : "Stream only"}</span>
-            <audio controls src="${track.stream_url}?client_id=2t9loNQH90kzJcsFCODdigxfp325aq4z"></audio>
+            <strong>${track.name}</strong><br>
+            <span class="meta">${track.artist_name}</span>
+            <audio controls src="${track.audio}"></audio>
             <div class="actions">
-              ${track.downloadable ? `<a href="${track.download_url}?client_id=2t9loNQH90kzJcsFCODdigxfp325aq4z" download>Download</a>` : ""}
-              <a href="${track.permalink_url}" target="_blank">View on SoundCloud</a>
-              <button onclick='addFavorite(${JSON.stringify({
-                id: track.id,
-                title: track.title,
-                artist: track.user.username,
-                source: "SoundCloud",
-                link: track.permalink_url,
-                preview: track.stream_url + "?client_id=2t9loNQH90kzJcsFCODdigxfp325aq4z"
-              })})'>Favorite</button>
+              <a href="${track.audio}" download>Download MP3</a>
+              <a href="${track.shareurl}" target="_blank">View on Jamendo</a>
             </div>
           </div>`).join("");
       } catch {
-        scEl.innerHTML = `<div class="note">Error loading SoundCloud results.</div>`;
+        jamendoEl.innerHTML = `<div class="note">Error loading Jamendo results.</div>`;
       }
     }
 
-    async function searchDeezer(q) {
+    async function searchFMA(q) {
       try {
-        const res = await fetch(`/api/deezer?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/fma?q=${encodeURIComponent(q)}`);
         const data = await res.json();
-        if (!data || !data.data || data.data.length === 0) {
-          deezerEl.innerHTML = `<div class="note">No Deezer results found for "${q}".</div>`;
+        if (!data || !data.dataset || data.dataset.length === 0) {
+          fmaEl.innerHTML = `<div class="note">No FMA results found for "${q}".</div>`;
           return;
         }
-        deezerEl.innerHTML = "<h2>Deezer Results</h2>" + data.data.map(track => `
+        fmaEl.innerHTML = "<h2>Free Music Archive Results</h2>" + data.dataset.map(track => `
           <div class="card">
-            <strong>${track.title}</strong><br>
-            <span class="meta">${track.artist.name} · ${track.album.title}</span>
-            <audio controls src="${track.preview}"></audio>
+            <strong>${track.track_title}</strong><br>
+            <span class="meta">${track.artist_name}</span>
+            <audio controls src="${track.track_url}"></audio>
             <div class="actions">
-              <a href="${track.link}" target="_blank">View on Deezer</a>
-              <button onclick='addFavorite(${JSON.stringify({
-                id: track.id,
-                title: track.title,
-                artist: track.artist.name,
-                source: "Deezer",
-                link: track.link,
-                preview: track.preview
-              })})'>Favorite</button>
+              <a href="${track.track_url}" download>Download MP3</a>
+              <a href="${track.track_url}" target="_blank">View on FMA</a>
             </div>
           </div>`).join("");
       } catch {
-        deezerEl.innerHTML = `<div class="note">Error loading Deezer results.</div>`;
+        fmaEl.innerHTML = `<div class="note">Error loading FMA results.</div>`;
       }
     }
 
@@ -160,27 +100,20 @@
         statusEl.textContent = "Type a search term.";
         return;
       }
-      statusEl.textContent = "Searching…";
-      scEl.innerHTML = "";
-      deezerEl.innerHTML = "";
-      await Promise.allSettled([searchSoundCloud(q), searchDeezer(q)]);
+      statusEl.textContent = "Searching Jamendo + FMA…";
+      jamendoEl.innerHTML = "";
+      fmaEl.innerHTML = "";
+      await Promise.allSettled([searchJamendo(q), searchFMA(q)]);
       statusEl.textContent = "Done.";
     }
 
     searchBtn.onclick = doSearch;
     clearBtn.onclick = () => {
       queryEl.value = "";
-      scEl.innerHTML = "";
-      deezerEl.innerHTML = "";
+      jamendoEl.innerHTML = "";
+      fmaEl.innerHTML = "";
       statusEl.textContent = "Cleared.";
     };
-    toggleFavBtn.onclick = () => {
-      favEl.style.display = favEl.style.display === "none" ? "block" : "none";
-      toggleFavBtn.textContent = favEl.style.display === "none" ? "Show Favorites" : "Hide Favorites";
-    };
-
-    // Render favorites on load
-    renderFavorites();
   </script>
 </body>
 </html>
