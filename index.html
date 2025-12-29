@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Legal Music Search & Downloads</title>
+  <title>SoundCloud Music Search</title>
   <style>
     body { font-family: Arial, sans-serif; background:#0f1220; color:#e8ecf2; margin:0 }
     header { padding:20px; background:#161a2e; position:sticky; top:0 }
@@ -24,131 +24,71 @@
 </head>
 <body>
   <header>
-    <h1>Legal Music Search & Downloads</h1>
+    <h1>SoundCloud Music Search</h1>
     <div class="search">
       <input id="query" type="text" placeholder="Search songs, artists, genres..." />
       <button id="searchBtn" class="primary">Search</button>
       <button id="clearBtn" class="secondary">Clear</button>
     </div>
-    <div class="note">Sources: Jamendo · Internet Archive · Free Music Archive · SoundCloud</div>
+    <div class="note">Powered by SoundCloud public API</div>
   </header>
 
   <main>
     <div id="status" class="note">Enter a search term and hit Search.</div>
-    <div id="jamendo" class="section"></div>
-    <div id="archive" class="section"></div>
-    <div id="fma" class="section"></div>
     <div id="soundcloud" class="section"></div>
   </main>
 
   <script>
-    const JAMENDO_CLIENT_ID = "REPLACE_WITH_YOUR_JAMENDO_CLIENT_ID"; 
-    const FMA_API_KEY = "REPLACE_WITH_YOUR_FMA_API_KEY"; 
-    const SOUNDCLOUD_CLIENT_ID = "REPLACE_WITH_YOUR_SOUNDCLOUD_CLIENT_ID"; 
+    const SOUNDCLOUD_CLIENT_ID = "2t9loNQH90kzJcsFCODdigxfp325aq4z"; // public key
 
     const queryEl = document.getElementById("query");
     const searchBtn = document.getElementById("searchBtn");
     const clearBtn = document.getElementById("clearBtn");
     const statusEl = document.getElementById("status");
-    const jamendoEl = document.getElementById("jamendo");
-    const archiveEl = document.getElementById("archive");
-    const fmaEl = document.getElementById("fma");
     const scEl = document.getElementById("soundcloud");
 
-    // Jamendo
-    async function searchJamendo(q) {
-      if (!JAMENDO_CLIENT_ID.includes("REPLACE")) {
-        try {
-          const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=5&search=${encodeURIComponent(q)}&audioformat=mp31&include=licenses+musicinfo`;
-          const res = await fetch(url);
-          const data = await res.json();
-          jamendoEl.innerHTML = "<h2>Jamendo</h2>" + data.results.map(track => `
-            <div class="card">
-              <strong>${track.name}</strong><br>
-              <span class="meta">${track.artist_name} · License: ${track.license}</span>
-              <audio controls src="${track.audio}"></audio>
-              <div class="actions"><a href="${track.audio}" download>Download</a></div>
-            </div>`).join("");
-        } catch { jamendoEl.innerHTML = "<div class='note'>Error loading Jamendo.</div>"; }
-      } else {
-        jamendoEl.innerHTML = "<div class='note'>Jamendo setup required.</div>";
-      }
-    }
-
-    // Internet Archive
-    async function searchArchive(q) {
+    async function searchSoundCloud(q) {
       try {
-        const url = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(${encodeURIComponent(q)})&fl[]=identifier&fl[]=title&fl[]=creator&rows=5&page=1&output=json`;
+        const url = `https://api.soundcloud.com/tracks?q=${encodeURIComponent(q)}&client_id=${SOUNDCLOUD_CLIENT_ID}&limit=10`;
         const res = await fetch(url);
         const data = await res.json();
-        const items = data.response.docs;
-        archiveEl.innerHTML = "<h2>Internet Archive</h2>" + items.map(doc => `
+        if (!data || data.length === 0) {
+          scEl.innerHTML = `<div class="note">No results found for "${q}".</div>`;
+          return;
+        }
+        scEl.innerHTML = "<h2>SoundCloud Results</h2>" + data.map(track => `
           <div class="card">
-            <strong>${doc.title}</strong><br>
-            <span class="meta">${doc.creator || "Unknown"} · License: See item page</span>
-            <div class="actions"><a href="https://archive.org/details/${doc.identifier}" target="_blank">View</a></div>
+            <strong>${track.title}</strong><br>
+            <span class="meta">${track.user.username} · ${track.downloadable ? "Downloadable" : "Stream only"}</span>
+            <audio controls src="${track.stream_url}?client_id=${SOUNDCLOUD_CLIENT_ID}"></audio>
+            <div class="actions">
+              ${track.downloadable ? `<a href="${track.download_url}?client_id=${SOUNDCLOUD_CLIENT_ID}" download>Download</a>` : ""}
+              <a href="${track.permalink_url}" target="_blank">View</a>
+            </div>
           </div>`).join("");
-      } catch { archiveEl.innerHTML = "<div class='note'>Error loading Internet Archive.</div>"; }
-    }
-
-    // Free Music Archive
-    async function searchFMA(q) {
-      if (!FMA_API_KEY.includes("REPLACE")) {
-        try {
-          const url = `https://freemusicarchive.org/api/trackSearch?api_key=${FMA_API_KEY}&query=${encodeURIComponent(q)}&limit=5`;
-          const res = await fetch(url);
-          const data = await res.json();
-          const tracks = data.dataset || [];
-          fmaEl.innerHTML = "<h2>Free Music Archive</h2>" + tracks.map(track => `
-            <div class="card">
-              <strong>${track.track_title}</strong><br>
-              <span class="meta">${track.artist_name} · License: ${track.license_title}</span>
-              ${track.track_file_url ? `<audio controls src="${track.track_file_url}"></audio>` : ""}
-              <div class="actions">
-                ${track.track_file_url ? `<a href="${track.track_file_url}" download>Download</a>` : ""}
-                <a href="${track.track_url}" target="_blank">View</a>
-              </div>
-            </div>`).join("");
-        } catch { fmaEl.innerHTML = "<div class='note'>Error loading FMA.</div>"; }
-      } else {
-        fmaEl.innerHTML = "<div class='note'>FMA setup required.</div>";
+      } catch {
+        scEl.innerHTML = "<div class='note'>Error loading SoundCloud results.</div>";
       }
     }
 
-    // SoundCloud
-    async function searchSoundCloud(q) {
-      if (!SOUNDCLOUD_CLIENT_ID.includes("REPLACE")) {
-        try {
-          const url = `https://api.soundcloud.com/tracks?q=${encodeURIComponent(q)}&client_id=${SOUNDCLOUD_CLIENT_ID}&limit=5`;
-          const res = await fetch(url);
-          const data = await res.json();
-          scEl.innerHTML = "<h2>SoundCloud</h2>" + data.map(track => `
-            <div class="card">
-              <strong>${track.title}</strong><br>
-              <span class="meta">${track.user.username} · ${track.downloadable ? "Downloadable" : "Stream only"}</span>
-              <audio controls src="${track.stream_url}?client_id=${SOUNDCLOUD_CLIENT_ID}"></audio>
-              <div class="actions">
-                ${track.downloadable ? `<a href="${track.download_url}?client_id=${SOUNDCLOUD_CLIENT_ID}" download>Download</a>` : ""}
-                <a href="${track.permalink_url}" target="_blank">View</a>
-              </div>
-            </div>`).join("");
-        } catch { scEl.innerHTML = "<div class='note'>Error loading SoundCloud.</div>"; }
-      } else {
-        scEl.innerHTML = "<div class='note'>SoundCloud setup required.</div>";
-      }
-    }
-
-    // Unified search
     async function doSearch() {
       const q = queryEl.value.trim();
-      if (!q) { statusEl.textContent = "Type a search term."; return; }
+      if (!q) {
+        statusEl.textContent = "Type a search term.";
+        return;
+      }
       statusEl.textContent = "Searching…";
-      jamendoEl.innerHTML = archiveEl.innerHTML = fmaEl.innerHTML = scEl.innerHTML = "";
-      await Promise.allSettled([searchJamendo(q), searchArchive(q), searchFMA(q), searchSoundCloud(q)]);
+      scEl.innerHTML = "";
+      await searchSoundCloud(q);
       statusEl.textContent = "Done.";
     }
 
     searchBtn.onclick = doSearch;
     clearBtn.onclick = () => {
-      queryEl.value="";
-      jamendo
+      queryEl.value = "";
+      scEl.innerHTML = "";
+      statusEl.textContent = "Cleared.";
+    };
+  </script>
+</body>
+</html>
