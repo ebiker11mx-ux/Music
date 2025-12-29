@@ -15,9 +15,9 @@
     button.secondary { background:#232743; color:#e8ecf2 }
     main { padding:20px }
     .section { margin-bottom:30px }
-    .card { background:#121631; border:1px solid #232743; border-radius:8px; padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center }
+    .card { background:#121631; border:1px solid #232743; border-radius:8px; padding:12px; margin-bottom:10px; }
     .meta { font-size:12px; color:#a6adbb }
-    .actions a { margin-left:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold }
+    .actions a { margin-right:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold }
     audio { margin-top:6px; width:100% }
     .note { font-size:13px; color:#a6adbb; margin-top:10px }
   </style>
@@ -30,7 +30,7 @@
       <button id="searchBtn" class="primary">Search</button>
       <button id="clearBtn" class="secondary">Clear</button>
     </div>
-    <div class="note">Sources: Jamendo · Internet Archive · Free Music Archive</div>
+    <div class="note">Sources: Jamendo · Internet Archive · Free Music Archive · SoundCloud</div>
   </header>
 
   <main>
@@ -38,11 +38,13 @@
     <div id="jamendo" class="section"></div>
     <div id="archive" class="section"></div>
     <div id="fma" class="section"></div>
+    <div id="soundcloud" class="section"></div>
   </main>
 
   <script>
     const JAMENDO_CLIENT_ID = "REPLACE_WITH_YOUR_JAMENDO_CLIENT_ID"; 
     const FMA_API_KEY = "REPLACE_WITH_YOUR_FMA_API_KEY"; 
+    const SOUNDCLOUD_CLIENT_ID = "REPLACE_WITH_YOUR_SOUNDCLOUD_CLIENT_ID"; 
 
     const queryEl = document.getElementById("query");
     const searchBtn = document.getElementById("searchBtn");
@@ -51,66 +53,57 @@
     const jamendoEl = document.getElementById("jamendo");
     const archiveEl = document.getElementById("archive");
     const fmaEl = document.getElementById("fma");
+    const scEl = document.getElementById("soundcloud");
 
-    // Jamendo search
+    // Jamendo
     async function searchJamendo(q) {
       if (!JAMENDO_CLIENT_ID.includes("REPLACE")) {
         try {
-          const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=10&search=${encodeURIComponent(q)}&audioformat=mp31&include=licenses+musicinfo`;
+          const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=5&search=${encodeURIComponent(q)}&audioformat=mp31&include=licenses+musicinfo`;
           const res = await fetch(url);
           const data = await res.json();
           jamendoEl.innerHTML = "<h2>Jamendo</h2>" + data.results.map(track => `
             <div class="card">
-              <div>
-                <strong>${track.name}</strong><br>
-                <span class="meta">${track.artist_name} · License: ${track.license}</span>
-                <audio controls src="${track.audio}"></audio>
-              </div>
-              <div class="actions">
-                <a href="${track.audio}" download>Download</a>
-              </div>
+              <strong>${track.name}</strong><br>
+              <span class="meta">${track.artist_name} · License: ${track.license}</span>
+              <audio controls src="${track.audio}"></audio>
+              <div class="actions"><a href="${track.audio}" download>Download</a></div>
             </div>`).join("");
         } catch { jamendoEl.innerHTML = "<div class='note'>Error loading Jamendo.</div>"; }
       } else {
-        jamendoEl.innerHTML = "<div class='note'>Jamendo setup required: add your Client ID.</div>";
+        jamendoEl.innerHTML = "<div class='note'>Jamendo setup required.</div>";
       }
     }
 
-    // Internet Archive search
+    // Internet Archive
     async function searchArchive(q) {
       try {
-        const url = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(${encodeURIComponent(q)})&fl[]=identifier&fl[]=title&fl[]=creator&rows=10&page=1&output=json`;
+        const url = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(${encodeURIComponent(q)})&fl[]=identifier&fl[]=title&fl[]=creator&rows=5&page=1&output=json`;
         const res = await fetch(url);
         const data = await res.json();
         const items = data.response.docs;
         archiveEl.innerHTML = "<h2>Internet Archive</h2>" + items.map(doc => `
           <div class="card">
-            <div>
-              <strong>${doc.title}</strong><br>
-              <span class="meta">${doc.creator || "Unknown"} · License: See item page</span>
-            </div>
-            <div class="actions">
-              <a href="https://archive.org/details/${doc.identifier}" target="_blank">View</a>
-            </div>
+            <strong>${doc.title}</strong><br>
+            <span class="meta">${doc.creator || "Unknown"} · License: See item page</span>
+            <div class="actions"><a href="https://archive.org/details/${doc.identifier}" target="_blank">View</a></div>
           </div>`).join("");
       } catch { archiveEl.innerHTML = "<div class='note'>Error loading Internet Archive.</div>"; }
     }
 
-    // Free Music Archive search
+    // Free Music Archive
     async function searchFMA(q) {
       if (!FMA_API_KEY.includes("REPLACE")) {
         try {
-          const url = `https://freemusicarchive.org/api/trackSearch?api_key=${FMA_API_KEY}&query=${encodeURIComponent(q)}&limit=10`;
+          const url = `https://freemusicarchive.org/api/trackSearch?api_key=${FMA_API_KEY}&query=${encodeURIComponent(q)}&limit=5`;
           const res = await fetch(url);
           const data = await res.json();
           const tracks = data.dataset || [];
           fmaEl.innerHTML = "<h2>Free Music Archive</h2>" + tracks.map(track => `
             <div class="card">
-              <div>
-                <strong>${track.track_title}</strong><br>
-                <span class="meta">${track.artist_name} · License: ${track.license_title}</span>
-                ${track.track_file_url ? `<audio controls src="${track.track_file_url}"></audio>` : ""}
-              </div>
+              <strong>${track.track_title}</strong><br>
+              <span class="meta">${track.artist_name} · License: ${track.license_title}</span>
+              ${track.track_file_url ? `<audio controls src="${track.track_file_url}"></audio>` : ""}
               <div class="actions">
                 ${track.track_file_url ? `<a href="${track.track_file_url}" download>Download</a>` : ""}
                 <a href="${track.track_url}" target="_blank">View</a>
@@ -118,7 +111,30 @@
             </div>`).join("");
         } catch { fmaEl.innerHTML = "<div class='note'>Error loading FMA.</div>"; }
       } else {
-        fmaEl.innerHTML = "<div class='note'>FMA setup required: add your API key.</div>";
+        fmaEl.innerHTML = "<div class='note'>FMA setup required.</div>";
+      }
+    }
+
+    // SoundCloud
+    async function searchSoundCloud(q) {
+      if (!SOUNDCLOUD_CLIENT_ID.includes("REPLACE")) {
+        try {
+          const url = `https://api.soundcloud.com/tracks?q=${encodeURIComponent(q)}&client_id=${SOUNDCLOUD_CLIENT_ID}&limit=5`;
+          const res = await fetch(url);
+          const data = await res.json();
+          scEl.innerHTML = "<h2>SoundCloud</h2>" + data.map(track => `
+            <div class="card">
+              <strong>${track.title}</strong><br>
+              <span class="meta">${track.user.username} · ${track.downloadable ? "Downloadable" : "Stream only"}</span>
+              <audio controls src="${track.stream_url}?client_id=${SOUNDCLOUD_CLIENT_ID}"></audio>
+              <div class="actions">
+                ${track.downloadable ? `<a href="${track.download_url}?client_id=${SOUNDCLOUD_CLIENT_ID}" download>Download</a>` : ""}
+                <a href="${track.permalink_url}" target="_blank">View</a>
+              </div>
+            </div>`).join("");
+        } catch { scEl.innerHTML = "<div class='note'>Error loading SoundCloud.</div>"; }
+      } else {
+        scEl.innerHTML = "<div class='note'>SoundCloud setup required.</div>";
       }
     }
 
@@ -126,13 +142,4 @@
       const q = queryEl.value.trim();
       if (!q) { statusEl.textContent = "Type a search term."; return; }
       statusEl.textContent = "Searching…";
-      jamendoEl.innerHTML = archiveEl.innerHTML = fmaEl.innerHTML = "";
-      await Promise.allSettled([searchJamendo(q), searchArchive(q), searchFMA(q)]);
-      statusEl.textContent = "Done.";
-    }
-
-    searchBtn.onclick = doSearch;
-    clearBtn.onclick = () => { queryEl.value=""; jamendoEl.innerHTML=archiveEl.innerHTML=fmaEl.innerHTML=""; statusEl.textContent="Cleared."; };
-  </script>
-</body>
-</html>
+      jamendoEl.innerHTML =
