@@ -138,8 +138,17 @@
       }
     }
 
+    // Unified search
     async function doSearch() {
       const q = queryEl.value.trim();
       if (!q) { statusEl.textContent = "Type a search term."; return; }
       statusEl.textContent = "Searching…";
-      jamendoEl.innerHTML =
+      jamendoEl.innerHTML = archiveEl.innerHTML = fmaEl.innerHTML = scEl.innerHTML = "";
+      await Promise.allSettled([searchJamendo(q), searchArchive(q), searchFMA(q), searchSoundCloud(q)]);
+      statusEl.textContent = "Done.";
+    }
+
+    searchBtn.onclick = doSearch;
+    clearBtn.onclick = () => {
+      queryEl.value="";
+      jamendo
