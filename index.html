@@ -17,9 +17,10 @@
     .section { margin-bottom:30px }
     .card { background:#121631; border:1px solid #232743; border-radius:8px; padding:12px; margin-bottom:10px; }
     .meta { font-size:12px; color:#a6adbb }
-    .actions a { margin-right:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold }
+    .actions a, .actions button { margin-right:8px; padding:6px 10px; border-radius:6px; background:#5de1a9; color:#072217; text-decoration:none; font-size:12px; font-weight:bold; cursor:pointer }
     audio { margin-top:6px; width:100% }
     .note { font-size:13px; color:#a6adbb; margin-top:10px }
+    #favorites { background:#161a2e; padding:15px; border-radius:8px; display:none }
   </style>
 </head>
 <body>
@@ -29,6 +30,7 @@
       <input id="query" type="text" placeholder="Search royalty-free songs..." />
       <button id="searchBtn" class="primary">Search</button>
       <button id="clearBtn" class="secondary">Clear</button>
+      <button id="toggleFavBtn" class="secondary">Show Favorites</button>
     </div>
     <div class="note">Powered by Jamendo & Free Music Archive</div>
   </header>
@@ -37,15 +39,58 @@
     <div id="status" class="note">Enter a search term and hit Search.</div>
     <div id="jamendo" class="section"></div>
     <div id="fma" class="section"></div>
+    <div id="favorites" class="section">
+      <h2>Favorites</h2>
+      <div id="favList"></div>
+    </div>
   </main>
 
   <script>
     const queryEl = document.getElementById("query");
     const searchBtn = document.getElementById("searchBtn");
     const clearBtn = document.getElementById("clearBtn");
+    const toggleFavBtn = document.getElementById("toggleFavBtn");
     const statusEl = document.getElementById("status");
     const jamendoEl = document.getElementById("jamendo");
     const fmaEl = document.getElementById("fma");
+    const favEl = document.getElementById("favorites");
+    const favListEl = document.getElementById("favList");
+
+    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+    function saveFavorites() {
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+      renderFavorites();
+    }
+
+    function addFavorite(track) {
+      if (!favorites.find(f => f.id === track.id && f.source === track.source)) {
+        favorites.push(track);
+        saveFavorites();
+      }
+    }
+
+    function removeFavorite(id, source) {
+      favorites = favorites.filter(f => !(f.id === id && f.source === source));
+      saveFavorites();
+    }
+
+    function renderFavorites() {
+      if (favorites.length === 0) {
+        favListEl.innerHTML = "<div class='note'>No favorites yet.</div>";
+        return;
+      }
+      favListEl.innerHTML = favorites.map(track => `
+        <div class="card">
+          <strong>${track.title}</strong><br>
+          <span class="meta">${track.artist} (${track.source})</span>
+          ${track.preview ? `<audio controls src="${track.preview}"></audio>` : ""}
+          <div class="actions">
+            <a href="${track.link}" target="_blank">View</a>
+            <button onclick="removeFavorite('${track.id}','${track.source}')">Remove</button>
+          </div>
+        </div>`).join("");
+    }
 
     async function searchJamendo(q) {
       try {
@@ -63,6 +108,14 @@
             <div class="actions">
               <a href="${track.audio}" download>Download MP3</a>
               <a href="${track.shareurl}" target="_blank">View on Jamendo</a>
+              <button onclick='addFavorite(${JSON.stringify({
+                id: track.id,
+                title: track.name,
+                artist: track.artist_name,
+                source: "Jamendo",
+                link: track.shareurl,
+                preview: track.audio
+              })})'>Favorite</button>
             </div>
           </div>`).join("");
       } catch {
@@ -86,6 +139,14 @@
             <div class="actions">
               <a href="${track.track_url}" download>Download MP3</a>
               <a href="${track.track_url}" target="_blank">View on FMA</a>
+              <button onclick='addFavorite(${JSON.stringify({
+                id: track.track_id,
+                title: track.track_title,
+                artist: track.artist_name,
+                source: "FMA",
+                link: track.track_url,
+                preview: track.track_url
+              })})'>Favorite</button>
             </div>
           </div>`).join("");
       } catch {
@@ -94,7 +155,7 @@
     }
 
     async function doSearch() {
-      const q = queryEl.value.trim();
+      let q = queryEl.value.trim();
       if (!q) {
         statusEl.textContent = "Type a search term.";
         return;
@@ -113,6 +174,13 @@
       fmaEl.innerHTML = "";
       statusEl.textContent = "Cleared.";
     };
+    toggleFavBtn.onclick = () => {
+      favEl.style.display = favEl.style.display === "none" ? "block" : "none";
+      toggleFavBtn.textContent = favEl.style.display === "none" ? "Show Favorites" : "Hide Favorites";
+    };
+
+    // Render favorites on load
+    renderFavorites();
   </script>
 </body>
 </html>
