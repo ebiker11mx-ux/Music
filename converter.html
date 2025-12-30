@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+      <title>JPEG → PNG Converter</title>
+
+        <!-- AdSense verification script -->
+          <script async
+              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1759087925328741"
+                  crossorigin="anonymous"></script>
+
+                    <link rel="stylesheet" href="style.css">
+                    </head>
+                    <body>
+
+                    <nav>
+                      <a href="index.html">Home</a>
+                        <a href="converter.html">Image Converter</a>
+                          <a href="calculator.html">Unit Calculator</a>
+                          </nav>
+
+                          <div class="container">
+                            <h1>JPEG → PNG Converter</h1>
+                              <input type="file" id="fileInput" accept="image/jpeg">
+                                <canvas id="canvas" style="display:none;"></canvas>
+                                  <button id="downloadBtn" style="display:none;">Download PNG</button>
+                                  </div>
+
+                                  <script>
+                                  const fileInput = document.getElementById("fileInput");
+                                  const canvas = document.getElementById("canvas");
+                                  const downloadBtn = document.getElementById("downloadBtn");
+
+                                  fileInput.addEventListener("change", () => {
+                                    const file = fileInput.files[0];
+                                      const img = new Image();
+                                        const reader = new FileReader();
+
+                                          reader.onload = e => img.src = e.target.result;
+                                            reader.readAsDataURL(file);
+
+                                              img.onload = () => {
+                                                  canvas.width = img.width;
+                                                      canvas.height = img.height;
+                                                          canvas.getContext("2d").drawImage(img, 0, 0);
+                                                              downloadBtn.style.display = "block";
+                                                                };
+                                                                });
+
+                                                                downloadBtn.onclick = () => {
+                                                                  const link = document.createElement("a");
+                                                                    link.download = "converted.png";
+                                                                      link.href = canvas.toDataURL("image/png");
+                                                                        link.click();
+                                                                        };
+                                                                        </script>
+
+                                                                        </body>
+                                                                        </html>
